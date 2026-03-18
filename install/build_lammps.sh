@@ -9,9 +9,9 @@ rm -rf build
 rm -f src/REACTION/fix_bond_react.cpp
 rm -f src/REACTION/fix_bond_react.h
 
-wget https://raw.githubusercontent.com/adrien-berard/modified_lammps_reacter/main/modified_lammps_Apr2024/fix_bond_react_modified_version/fix_bond_react.cpp -P src/REACTION/
+wget https://raw.githubusercontent.com/adrien-berard/modified_lammps_reacter/master/modified_lammps_Apr2024/fix_bond_react_modified_version/fix_bond_react.cpp -P src/REACTION/
 
-wget https://raw.githubusercontent.com/adrien-berard/modified_lammps_reacter/main/modified_lammps_Apr2024/fix_bond_react_modified_version/fix_bond_react.h -P src/REACTION/
+wget https://raw.githubusercontent.com/adrien-berard/modified_lammps_reacter/master/modified_lammps_Apr2024/fix_bond_react_modified_version/fix_bond_react.h -P src/REACTION/
 
 mkdir build
 cd build
