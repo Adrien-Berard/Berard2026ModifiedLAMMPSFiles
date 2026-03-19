@@ -63,3 +63,8 @@ cmake --build . -j$(nproc)
 
 # --- Verify ---
 ./lmp -h | grep USER
+
+# --- Add lmp to PATH ---
+echo "export PATH=\$PATH:/home/adrien/modified_lammps_Apr2024/build" >> ~/.bashrc  # Change your path accordingly
+source ~/.bashrc
+lmp -h
