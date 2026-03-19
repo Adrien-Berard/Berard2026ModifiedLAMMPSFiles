@@ -1,13 +1,15 @@
-rm -rf modified_lammps_Apr2024
-
 #!/usr/bin/env bash
 set -e  # stop on error
+set -x  # print every command before executing it
 
-# --- Clone LAMMPS ---
-git clone --depth 1 --branch patch_17Apr2024 https://github.com/lammps/lammps.git modified_lammps_Apr2024
+# --- Clone LAMMPS at the specific tag ---
+rm -rf modified_lammps_Apr2024
+
+git clone --depth 1 --branch patch_17Apr2024 \
+    https://github.com/lammps/lammps.git modified_lammps_Apr2024
+
 cd modified_lammps_Apr2024
-
-git switch --detach patch_17Apr2024
+git switch -c my_modified_lammps
 
 # --- Clean previous builds ---
 rm -rf build
@@ -16,33 +18,30 @@ rm -rf build
 rm -f src/REACTION/fix_bond_react.cpp
 rm -f src/REACTION/fix_bond_react.h
 
-wget -q https://raw.githubusercontent.com/adrien-berard/modified_lammps_reacter/master/modified_lammps_Apr2024/fix_bond_react_modified_version/fix_bond_react.cpp -O src/REACTION/fix_bond_react.cpp
-wget -q https://raw.githubusercontent.com/adrien-berard/modified_lammps_reacter/master/modified_lammps_Apr2024/fix_bond_react_modified_version/fix_bond_react.h -O src/REACTION/fix_bond_react.h
+base_react="https://raw.githubusercontent.com/Adrien-Berard/Berard2026ModifiedLAMMPSFiles/master/fix_bond_react_modified_version"
+wget -q "${base_react}/fix_bond_react.cpp" -O src/REACTION/fix_bond_react.cpp
+wget -q "${base_react}/fix_bond_react.h"   -O src/REACTION/fix_bond_react.h
 
 # --- USER-LE package (loop extrusion) ---
-# NOTE: must download actual files, not directory
-
-rm -f src/compute_cb.cpp
-rm -f src/compute_cb.h
-
-wget https://raw.githubusercontent.com/polly-code/lammps_le/main/src/compute_cb.cpp
-wget https://raw.githubusercontent.com/polly-code/lammps_le/main/src/compute_cb.h
+wget -q https://raw.githubusercontent.com/polly-code/lammps_le/main/src/compute_cb.cpp \
+     -O src/compute_cb.cpp
+wget -q https://raw.githubusercontent.com/polly-code/lammps_le/main/src/compute_cb.h \
+     -O src/compute_cb.h
 
 mkdir -p src/USER-LE
 
-base_url="https://raw.githubusercontent.com/polly-code/lammps_le/main/src/USER-LE"
 
 files=(
   fix_ex_load.cpp
-  fix_ex_load.cpp
-  fix_ex_load.cpp
-  fix_ex_load.cpp
+  fix_ex_load.h
+  fix_ex_unload.cpp
+  fix_ex_unload.h
   fix_extrusion.cpp
   fix_extrusion.h
 )
 
 for f in "${files[@]}"; do
-  wget -q "${base_url}/${f}" -O "src/USER-LE/${f}"
+  wget -q "https://raw.githubusercontent.com/polly-code/lammps_le/main/src/USER-LE/${f}" -O "src/USER-LE/${f}"
 done
 
 # --- Build ---
