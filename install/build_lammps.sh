@@ -22,6 +22,11 @@ cmake -C ../cmake/presets/most.cmake \
       -C ../cmake/presets/nolib.cmake \
       -D PKG_REACTION=ON \
       -D PKG_MOLECULE=ON \
+      -D -D PKG_MISC=ON \
+      -D PKG_USER-LE=ON \
+      -D PKG_MPIIO=ON \
+      -D PKG_MOLECULE=ON \
+      -D PKG_MC=ON
       ../cmake
 
 make -j$(nproc)
