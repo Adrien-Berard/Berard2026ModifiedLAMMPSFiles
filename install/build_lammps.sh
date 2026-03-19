@@ -4,7 +4,7 @@ rm -rf modified_lammps_Apr2024
 set -e  # stop on error
 
 # --- Clone LAMMPS ---
-git clone https://github.com/lammps/lammps.git modified_lammps_Apr2024
+git clone --depth 1 --branch patch_17Apr2024 https://github.com/lammps/lammps.git modified_lammps_Apr2024
 cd modified_lammps_Apr2024
 
 git switch --detach patch_17Apr2024
