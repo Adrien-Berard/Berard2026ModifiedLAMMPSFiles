@@ -7,7 +7,7 @@ set -e  # stop on error
 git clone https://github.com/lammps/lammps.git modified_lammps_Apr2024
 cd modified_lammps_Apr2024
 
-git checkout patch_17Apr2024
+git switch --detach patch_17Apr2024
 
 # --- Clean previous builds ---
 rm -rf build
