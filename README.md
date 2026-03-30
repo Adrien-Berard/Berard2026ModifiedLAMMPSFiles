@@ -9,3 +9,5 @@ Modifications in this repository:
 - modified fix_bond_react.cpp
 - modified fix_bond_react.h
 - additional simulation scripts
+
+Replication folder is to do replication that still maintain (bi)stability.
