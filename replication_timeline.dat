@@ -1,0 +1,7 @@
+step,event,cycle
+1001000,replication_done,0
+1001000,sustain_no_reactions_start,0
+1055037,sustain_no_reactions_end,0
+2055037,replication_done,1
+2055037,sustain_no_reactions_start,1
+2109074,sustain_no_reactions_end,1
