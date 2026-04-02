@@ -22,7 +22,7 @@ set -x
 
 # --- Paths ---
 INSTALL_DIR="${HOME}/lammps_src_Apr2024"
-SCRATCH_BUILD="${SCRATCH:-$HOME}/lammps"
+SCRATCH_BUILD="${SCRATCH:-$HOME}/lammps" #refine real path
 
 # --- Clone ---
 safe_remove "$INSTALL_DIR"
@@ -51,7 +51,7 @@ cmake \
       -D BUILD_OMP=ON \
       -D PKG_KOKKOS=ON \
       -D Kokkos_ENABLE_OPENMP=ON \
-      -D Kokkos_ARCH_ZEN3=ON \
+      -D Kokkos_ARCH_ZEN=ON \
       -D FFT_KOKKOS=MKL \
       -D CMAKE_BUILD_TYPE=Release \
       -D PKG_REACTION=ON \
