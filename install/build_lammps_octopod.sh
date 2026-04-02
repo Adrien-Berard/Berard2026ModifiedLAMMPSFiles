@@ -3,12 +3,13 @@ set -euo pipefail
 set -x
 
 # --- Create safe_remove() function ---
-safe_remove() {
-    for target in "$@"; do
-        [ -e "$target" ] && mv "$target" "/tmp/trash_$$_$(basename "$target")" \
-            && echo "Moved $target to /tmp/trash_$$_$(basename $target)"
-    done
-}
+# Not define officialy here as alreayd define on muon
+# safe_remove() {
+#     for target in "$@"; do
+#         [ -e "$target" ] && mv "$target" "/tmp/trash_$$_$(basename "$target")" \
+#             && echo "Moved $target to /tmp/trash_$$_$(basename $target)"
+#     done
+# }
 # --- Load modules (adjust names) ---
 module load nbi intel-oneapi-mpi/2023.0 mkl/2023.0.0
 module load nbi intel-oneapi-mpi/2023.0 mkl/2023.0.0 mpi/2021.8.0
