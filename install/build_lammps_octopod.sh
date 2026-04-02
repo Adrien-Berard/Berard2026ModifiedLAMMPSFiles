@@ -35,6 +35,9 @@ BASE_REACT="https://raw.githubusercontent.com/Adrien-Berard/Berard2026ModifiedLA
 wget -q "${BASE_REACT}/fix_bond_react.cpp" -O src/REACTION/fix_bond_react.cpp
 wget -q "${BASE_REACT}/fix_bond_react.h"   -O src/REACTION/fix_bond_react.h
 
+
+# --- Could be done on a laptop until this line ---
+# just transfer to muon through: rsync -avz lammps_src_Apr2024/ youruser@muon.nbi.dk:/nbi/home/youruser/lammps_src_Apr2024/
 # --- Build ---
 safe_remove "$SCRATCH_BUILD"
 mkdir -p "$SCRATCH_BUILD"
