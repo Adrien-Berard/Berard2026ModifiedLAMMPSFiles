@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-set -euo pipefail
-set -x
 
 # --- Create safe_remove() function ---
 # Not define officialy here as alreayd define on muon
@@ -11,8 +9,14 @@ set -x
 #     done
 # }
 # --- Load modules (adjust names) ---
-module load nbi intel-oneapi-mpi/2023.0 mkl/2023.0.0
-module load nbi intel-oneapi-mpi/2023.0 mkl/2023.0.0 mpi/2021.8.0
+module load nbi 
+module load intel-oneapi-mpi/2023.0
+module load mkl/2023.0.0
+module load mpi/2021.8.0
+
+set -euo pipefail
+set -x
+
 
 # --- Paths ---
 INSTALL_DIR="${HOME}/modified_lammps_Apr2024"
