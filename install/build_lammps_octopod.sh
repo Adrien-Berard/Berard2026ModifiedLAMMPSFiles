@@ -10,9 +10,11 @@
 # }
 # --- Load modules (adjust names) ---
 module load nbi 
-module load intel-oneapi/2023.0
-module load mkl/2023.0.0
-module load mpi/2021.8.0
+module load intel-oneapi/2023.0 # in nbi
+module load mkl/2023.0.0 # in nbi intel..
+module load mpi/2021.8.0 # in nbi intel..
+module load tbb/2021.8.0 compiler-rt/2023.0.0 oclfpga/2023.0.0 # in nbi intel.. to get compiler load possible
+module load compiler/2023.0.0
 
 set -euo pipefail
 set -x
