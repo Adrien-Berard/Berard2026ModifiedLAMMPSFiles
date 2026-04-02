@@ -118,7 +118,7 @@ def build_theoretical_timeline(
 def plot_biological_timeline(ax, events, panel_title):
     """
     Plot replication timeline as horizontal bars by biological phase:
-    - DNA Replication (instantaneous marker)
+    - DNA Replication (instantaneous marker, slightly higher)
     - Mitosis (sustain_no_reactions)
     - Cell Cycle (from end of mitosis to next replication_done)
     """
@@ -129,36 +129,24 @@ def plot_biological_timeline(ax, events, panel_title):
     }
 
     y_base = 0
-    y_height = 0.3
-    y_gap = 0.05
-    plotted_labels = set()
+    y_height = 0.3  # base height for Mitosis and Cell Cycle
+    dna_extra_height = 0.1  # extra height for DNA Replication
 
-    # First, sort events by step
+    # Sort events by step
     events = sorted(events, key=lambda x: x[0])
-
-    # Build a mapping cycle -> events
     cycles = sorted(set(c for _, _, c in events))
+
+    # Track which labels have been added to the legend
+    legend_labels = set()
 
     for i, cycle in enumerate(cycles):
         # Get steps for this cycle
         rep_step = next(s for s, e, c in events if e == "replication_done" and c == cycle)
         mito_start = next(s for s, e, c in events if e == "sustain_no_reactions_start" and c == cycle)
         mito_end = next(s for s, e, c in events if e == "sustain_no_reactions_end" and c == cycle)
-        
-        # DNA Replication marker
-        label = "DNA Replication" if "DNA Replication" not in plotted_labels else None
-        ax.barh(
-            y_base + 2 * (y_height + y_gap),
-            width=1,  # thin marker
-            left=rep_step,
-            height=y_height,
-            color=colors["DNA Replication"],
-            label=label
-        )
-        plotted_labels.add("DNA Replication")
 
-        # Mitosis duration
-        label = "Mitosis" if "Mitosis" not in plotted_labels else None
+        # Mitosis bar
+        label = "Mitosis" if "Mitosis" not in legend_labels else None
         ax.barh(
             y_base,
             width=mito_end - mito_start,
@@ -168,16 +156,16 @@ def plot_biological_timeline(ax, events, panel_title):
             alpha=0.7,
             label=label
         )
-        plotted_labels.add("Mitosis")
+        legend_labels.add("Mitosis")
 
-        # Cell Cycle duration (from mito_end to next replication_done)
+        # Cell Cycle bar (from mito_end to next replication_done)
         if i < len(cycles) - 1:
             next_rep = next(s for s, e, c in events if e == "replication_done" and c == cycles[i + 1])
         else:
-            next_rep = rep_step + (mito_end - mito_start)  # or just extend a bit for the last cycle
-        label = "Cell Cycle" if "Cell Cycle" not in plotted_labels else None
+            next_rep = rep_step + (mito_end - mito_start)  # extend a bit for last cycle
+        label = "Cell Cycle" if "Cell Cycle" not in legend_labels else None
         ax.barh(
-            y_base + y_height + y_gap,
+            y_base,
             width=next_rep - mito_end,
             left=mito_end,
             height=y_height,
@@ -185,16 +173,27 @@ def plot_biological_timeline(ax, events, panel_title):
             alpha=0.5,
             label=label
         )
-        plotted_labels.add("Cell Cycle")
+        legend_labels.add("Cell Cycle")
 
-    # Clean up axes
+        # DNA Replication marker (slightly taller)
+        label = "DNA Replication" if "DNA Replication" not in legend_labels else None
+        ax.barh(
+            y_base,
+            width=10000,  # thin marker
+            left=rep_step,
+            height=y_height + dna_extra_height,
+            color=colors["DNA Replication"],
+            label=label
+        )
+        legend_labels.add("DNA Replication")
+
+    # Clean axes
     ax.set_yticks([])
     ax.set_ylabel("")
     ax.set_xlabel("Timestep")
     ax.set_title(panel_title)
     ax.grid(True, axis="x", alpha=0.3)
     ax.legend(loc="upper right")
-
 
 def plot_timeline(
     post_events: list[tuple[int, str, int]], vars_info: dict[str, float], out_png: Path

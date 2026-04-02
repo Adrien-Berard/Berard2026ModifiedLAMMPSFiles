@@ -1,0 +1,8 @@
+# ignore data files, just keep script
+*.lammpstrj
+*.dat
+*.equil
+*log.lammps
+*output.log
+
+
