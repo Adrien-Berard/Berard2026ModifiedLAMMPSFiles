@@ -3,7 +3,8 @@ set -e  # stop on error
 set -x  # print every command before executing it
 
 # --- Clone LAMMPS at the specific tag ---
-rm -rf modified_lammps_Apr2024
+# rm -rf modified_lammps_Apr2024
+trash modified_lammps_Apr2024
 
 git clone --depth 1 --branch patch_17Apr2024 \
     https://github.com/lammps/lammps.git modified_lammps_Apr2024
@@ -12,11 +13,14 @@ cd modified_lammps_Apr2024
 git switch -c my_modified_lammps
 
 # --- Clean previous builds ---
-rm -rf build
+# rm -rf build
+trash build
 
 # --- Replace REACTION fix ---
-rm -f src/REACTION/fix_bond_react.cpp
-rm -f src/REACTION/fix_bond_react.h
+# rm -f src/REACTION/fix_bond_react.cpp
+# rm -f src/REACTION/fix_bond_react.h
+trash src/REACTION/fix_bond_react.cpp
+trash src/REACTION/fix_bond_react.h
 
 base_react="https://raw.githubusercontent.com/Adrien-Berard/Berard2026ModifiedLAMMPSFiles/master/fix_bond_react_modified_version"
 wget -q "${base_react}/fix_bond_react.cpp" -O src/REACTION/fix_bond_react.cpp
