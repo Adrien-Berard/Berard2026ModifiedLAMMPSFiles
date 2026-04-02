@@ -10,7 +10,7 @@
 # }
 # --- Load modules (adjust names) ---
 module load nbi 
-module load intel-oneapi-mpi/2023.0
+module load intel-oneapi/2023.0
 module load mkl/2023.0.0
 module load mpi/2021.8.0
 
