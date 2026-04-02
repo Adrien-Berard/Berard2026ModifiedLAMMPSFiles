@@ -45,9 +45,7 @@ safe_remove "$SCRATCH_BUILD"
 mkdir -p "$SCRATCH_BUILD"
 cd "$SCRATCH_BUILD"
 
-cmake -C "$INSTALL_DIR/cmake/presets/most.cmake" \
-      -C "$INSTALL_DIR/cmake/presets/nolib.cmake" \
-      -D DOWNLOAD_ALL_POTENTIALS=OFF \
+cmake \
       -D BUILD_MPI=ON \
       -D CMAKE_CXX_COMPILER=mpicxx \
       -D BUILD_OMP=ON \
@@ -58,7 +56,8 @@ cmake -C "$INSTALL_DIR/cmake/presets/most.cmake" \
       -D CMAKE_BUILD_TYPE=Release \
       -D PKG_REACTION=ON \
       -D PKG_MOLECULE=ON \
-      ${INSTALL_DIR}/cmake
+      -D PKG_EXTRA-PAIR=ON \
+      ${HOME}/lammps_src_Apr2024/cmake
 
 cmake --build . -j 16
 
