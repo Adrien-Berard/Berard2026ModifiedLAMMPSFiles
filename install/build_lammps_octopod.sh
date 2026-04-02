@@ -47,6 +47,7 @@ cd "$SCRATCH_BUILD"
 
 cmake -C "$INSTALL_DIR/cmake/presets/most.cmake" \
       -C "$INSTALL_DIR/cmake/presets/nolib.cmake" \
+      -D DOWNLOAD_ALL_POTENTIALS=OFF \
       -D BUILD_MPI=ON \
       -D CMAKE_CXX_COMPILER=mpicxx \
       -D BUILD_OMP=ON \
