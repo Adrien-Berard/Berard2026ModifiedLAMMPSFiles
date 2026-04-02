@@ -1,16 +1,3 @@
-
-# --- Clean previous builds ---
-# rm -rf build
-trash build
-
-# --- Replace REACTION fix ---
-# rm -f src/REACTION/fix_bond_react.cpp
-# rm -f src/REACTION/fix_bond_react.h
-trash src/REACTION/fix_bond_react.cpp
-trash src/REACTION/fix_bond_react.h
-
----
-
 #!/usr/bin/env bash
 set -euo pipefail
 set -x
@@ -24,20 +11,20 @@ INSTALL_DIR="${HOME}/modified_lammps_Apr2024"
 SCRATCH_BUILD="${SCRATCH:-$HOME}/lammps"
 
 # --- Clone ---
-rm -rf "$INSTALL_DIR"
+safe_remove "$INSTALL_DIR"
 git clone --depth 1 --branch patch_17Apr2024 \
     https://github.com/lammps/lammps.git "$INSTALL_DIR"
 cd "$INSTALL_DIR"
 git switch -c my_modified_lammps
 
 # --- Patch REACTION fix ---
-rm -f src/REACTION/fix_bond_react.cpp src/REACTION/fix_bond_react.h
+safe_remove src/REACTION/fix_bond_react.cpp src/REACTION/fix_bond_react.h
 BASE_REACT="https://raw.githubusercontent.com/Adrien-Berard/Berard2026ModifiedLAMMPSFiles/master/fix_bond_react_modified_version"
 wget -q "${BASE_REACT}/fix_bond_react.cpp" -O src/REACTION/fix_bond_react.cpp
 wget -q "${BASE_REACT}/fix_bond_react.h"   -O src/REACTION/fix_bond_react.h
 
 # --- Build ---
-rm -rf "$SCRATCH_BUILD"
+safe_remove "$SCRATCH_BUILD"
 mkdir -p "$SCRATCH_BUILD"
 cd "$SCRATCH_BUILD"
 
