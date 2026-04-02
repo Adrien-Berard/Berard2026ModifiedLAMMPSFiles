@@ -58,7 +58,7 @@ cmake -C "$INSTALL_DIR/cmake/presets/most.cmake" \
       -D CMAKE_BUILD_TYPE=Release \
       -D PKG_REACTION=ON \
       -D PKG_MOLECULE=ON \
-      "$INSTALL_DIR/cmake"
+      ../cmake
 
 cmake --build . -j 16
 
