@@ -21,7 +21,7 @@ set -x
 
 
 # --- Paths ---
-INSTALL_DIR="${HOME}/modified_lammps_Apr2024"
+INSTALL_DIR="${HOME}/lammps_src_Apr2024"
 SCRATCH_BUILD="${SCRATCH:-$HOME}/lammps"
 
 # --- Clone ---
@@ -58,7 +58,7 @@ cmake -C "$INSTALL_DIR/cmake/presets/most.cmake" \
       -D CMAKE_BUILD_TYPE=Release \
       -D PKG_REACTION=ON \
       -D PKG_MOLECULE=ON \
-      ../cmake
+      ${INSTALL_DIR}/cmake
 
 cmake --build . -j 16
 
