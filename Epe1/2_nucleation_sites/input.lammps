@@ -1,0 +1,332 @@
+#package gpu 1 split 0.75
+# VARIABLES
+variable fname index InitialFile.txt
+variable simname index InitialFile
+variable J index 1.0
+
+#####################################################
+variable p1 equal 1e-4 # Vary from 1e-4 to 2e-5 with 10 values
+variable noise equal 500  # Vary from 500 to 2000 with 10 values
+#####################################################
+variable p2 equal 0.00025
+variable a index 1
+variable N index 1000
+# variable pCreateBondBE equal 0.05
+# variable pDeleteBondBE equal ${pCreateBondBE}$/2
+
+
+# Initialization
+units		lj
+boundary	    p p p
+atom_style	bond
+
+# read_restart	restart.equil 
+read_data InitialFile.txt 
+
+
+
+# Dreiding potential information
+neighbor	2.0 bin
+neigh_modify every 1 delay 0 check yes
+
+# Define the bond potential
+# Type - Energy - Equilibrium bond length
+bond_style      harmonic
+bond_coeff	Normal 10 1
+
+
+#####################################################
+# Define morse potentials D - alpha - r0 
+pair_style	morse/smooth/linear 3.0 # Cutoff
+#pair_coeff M M ${J} 2 1.0 # Define M-M pair coeff
+# repulsive interactions for all non defined pairs
+pair_coeff  * * 1e-2 2 1.5 #see potentials graph 
+
+pair_coeff	Swi6M M ${J} 3 1.0
+pair_coeff	Swi6M Swi6M ${J} 3 1.0
+pair_coeff  Epe1C M ${J} 3 1.0
+
+#####################################################
+
+# Define static groups based on atom types
+group chromatin type 1 2 3
+group Mtype type 3
+group allSwi6 type 4 5
+group Swi6M type 5
+group mobiles type 1 2 3 4 5 6
+group region_of_interest id 1:500
+group cenH id 251:275
+
+variable size_nucleation equal 25
+variable size_change equal 150
+group nucleation1 id ${v_size_change}+1:${v_size_change}+${v_size_nucleation}
+group nucleation2 id 2*${v_size_change}+${v_size_nucleation}+1:2*${v_size_change}+${v_size_nucleation}+${v_size_nucleation}
+
+group IRL id 191:200
+group IRR id 311:320
+group BoundaryElements union IRL IRR
+
+# Create dynamic groups based on these static groups
+group chromatin_dynamic dynamic chromatin every 1
+group Mtype_dynamic dynamic Mtype every 1
+
+# Step 1: Define variable for atom types
+variable AtomTypes4 atom 4
+variable AtomTypes5 atom 5
+variable AtomTypes6 atom 6
+variable AtomTypes4and5and6 atom "type == 4 || type == 5 || type == 6" 
+variable AtomTypes4and5 atom "type == 4 || type == 5" 
+
+# Step 2: Create dynamic groups based on atom types and update every 1 timesteps
+group Swi6_dynamic dynamic all var AtomTypes4 every 1
+group Swi6M_dynamic dynamic all var AtomTypes5 every 1
+group Epe1C_dynamic dynamic all var AtomTypes6 every 1
+group Swi6andSwi6HDAC_dynamic dynamic all var AtomTypes4and5 every 1
+group allSwi6_dynamic dynamic all var AtomTypes4and5and6 every 1
+#####################################################
+
+#####################################################
+# set timestep of integrator
+
+timestep 0.001
+
+#####################################################
+# Compute properties
+compute R2 chromatin gyration 
+
+#####################################################
+# Equilibration 
+
+velocity 	all create 1.0 12315
+fix		1 all nve/limit 1
+fix 2 all langevin 1.0 1.0 1.0 1215
+thermo_style	custom step temp
+thermo          100000
+
+run		10000000
+
+write_restart restart.equil
+# Not necessary anymore to have a restart file as it is already loaded
+
+#####################################################
+
+
+dump mydmp all atom 10000 dump.lammpstrj
+
+timestep 0.001
+#####################################################
+molecule ASwi6M_post ASwi6M_post-reaction.template
+molecule ASwi6M_pre ASwi6M_pre-reaction.template
+molecule AU_post AU_post-reaction.template
+molecule AU_pre AU_pre-reaction.template
+molecule MA_post MA_post-reaction.template
+molecule MA_pre MA_pre-reaction.template
+molecule MU_post MU_post-reaction.template
+molecule MU_pre MU_pre-reaction.template
+
+molecule Swi6toSwi6M_pre Swi6toSwi6M_pre-reaction.template
+molecule Swi6toSwi6M_post Swi6toSwi6M_post-reaction.template
+
+molecule Swi6toEpe1C_pre Swi6toEpe1C_pre-reaction.template
+molecule Swi6toEpe1C_post Swi6toEpe1C_post-reaction.template
+
+molecule MtoUEpe1C_pre MtoUEpe1C_pre-reaction.template
+molecule MtoUEpe1C_post MtoUEpe1C_post-reaction.template
+
+molecule Epe1CtoSwi6_pre Epe1CtoSwi6_pre-reaction.template
+molecule Epe1CtoSwi6_post Epe1CtoSwi6_post-reaction.template
+
+# molecule Swi6MdecayPre Swi6MDecay-pre.template
+# molecule Swi6MdecayPost Swi6MDecay-post.template
+
+
+#####################################################
+# Compute the count of atom types
+compute myTypes all count/type atom
+
+# Define variables to store the count of atom types
+variable typeA equal c_myTypes[1]
+variable typeU equal c_myTypes[2]
+variable typeM equal c_myTypes[3]
+
+# Define target values 
+# variable targetM equal v_typeA*1.5
+# variable targetA equal v_typeM*1.5
+#                                                                                     #TO-DO Change target with the 2 gaps
+# variable targetM equal 60
+# variable targetA equal 60
+
+# # Default initial probability values
+# variable pAtoU_updated equal 1e-4
+# variable pMtoU_updated equal 1e-4
+# variable pUtoA_updated equal 1e-4
+# variable pUtoM_updated equal 1e-4
+
+# run 1
+
+# # Define condition variables using ternary function
+# variable condition1 equal ternary(v_typeA>v_targetA,1,0)
+# variable condition2 equal ternary(v_typeM>v_targetM,1,0)
+
+# variable pAtoU_updated equal v_condition1*(2*${pAtoU_updated})+(1-v_condition1)*${pAtoU_updated}
+# variable pMtoU_updated equal v_condition2*(2*${pMtoU_updated})+(1-v_condition2)*${pMtoU_updated}
+# variable pUtoA_updated equal v_condition2*(2*${pUtoA_updated})+(1-v_condition2)*${pUtoA_updated}
+# variable pUtoM_updated equal v_condition1*(2*${pMtoU_updated})+(1-v_condition1)*${pUtoM_updated}
+
+
+# # Print updated probabilities for debugging
+# fix update_var all print 1000 "pAtoU_updated: ${pAtoU_updated}, pMtoU_updated: ${pMtoU_updated}, pUtoA_updated: ${pUtoA_updated}, pUtoM_updated: ${pUtoM_updated}" file updated_prob.txt screen no
+
+run 1000
+
+# Ensure that fixes are applied after all variables are correctly set up
+fix reacter all bond/react &
+    react reacAtoU all 1 0 2.0 ASwi6M_pre ASwi6M_post simple.map molecule inter prob v_p2 156 &
+    react reacMtoU region_of_interest 1 0 2.0 AU_pre AU_post simple.map molecule intra prob v_p1 5645 &
+    react reacUtoA region_of_interest 1 0 2.0 MA_pre MA_post simple.map molecule intra prob v_p2 564 &
+    react reacUtoM region_of_interest 1 0 2.0 MU_pre MU_post simple.map molecule intra prob v_p2 4856 &
+    react reacSwi6toSwi6M all 1 0 2.0 Swi6toSwi6M_pre Swi6toSwi6M_post simple.map molecule inter prob 1 1858 &
+    react reacSwi6toEpe1c all 1 0 3.0 Swi6toEpe1C_pre Swi6toEpe1C_post simple.map molecule inter prob 1 579 &
+    react reacMtoUEpe1C all 1 0 2.0 MtoUEpe1C_pre MtoUEpe1C_post simple.map molecule inter prob v_p2 7289 &
+    react reactEpe1CtoSwi6M all 1 0 2.0 Epe1CtoSwi6_pre Epe1CtoSwi6_post simple.map molecule inter prob 1 65678 &
+
+# Loop Extrusion on boundary elements fluctuating with IRL and IRR
+# fix loop BoundaryElements bond/create 100 1 1 1.5 1 prob v_pCreateBondBE 12345 iparam 1 1 jparam 1 1
+# fix break BoundaryElements bond/break 100 1 2.0 prob v_pDeleteBondBE 893
+
+#####################################################
+
+thermo_style custom step temp c_R2[0] f_reacter[1] f_reacter[2] f_reacter[3] f_reacter[4] f_reacter[5] f_reacter[6] f_reacter[7] #f_reacter[8]
+thermo_modify line yaml
+thermo 10000
+#####################################################
+
+
+
+#####################################################
+fix 2 all langevin 1 1 1.0 12315
+fix		1 all nve/limit 1
+
+####################################################
+# WALL CONDITIONS
+
+# fix mywall M_Atoms wall/lj93 xlo EDGE 10 10 100 xhi EDGE 10 10 100
+
+####################################################
+
+fix myfixR2 chromatin ave/time 10 100 1000 c_R2[0] file r2.dat
+
+####################################################
+variable typeSwi6 equal c_myTypes[4]
+variable typeSwi6M equal c_myTypes[5]
+variable typeEpe1C equal c_myTypes[6]
+
+# Output the count of atom types to a file every 1000 steps
+fix myfixTypes all print 1000 "${typeA},${typeU},${typeM},${typeSwi6},${typeSwi6M},${typeEpe1C}" file types1.dat screen no
+
+# Dump types for region_of_interest group
+dump deltaK_dump region_of_interest custom 10000 deltaK_types.dat id type
+
+####################################################
+# Count reactions
+
+variable reactionsIDs1 equal f_reacter[1]
+variable reactionsIDs2 equal f_reacter[2]
+variable reactionsIDs3 equal f_reacter[3]
+variable reactionsIDs4 equal f_reacter[4]
+variable reactionsIDs5 equal f_reacter[5]
+variable reactionsIDs6 equal f_reacter[6]
+variable reactionsIDs7 equal f_reacter[7]
+#variable reactionsIDs8 equal f_reacter[8]
+
+fix myFixReactions all print 10000 "${reactionsIDs1},${reactionsIDs2},${reactionsIDs3},${reactionsIDs4},${reactionsIDs5},${reactionsIDs6},${reactionsIDs7}," file reactions.dat screen no
+
+####################################################
+dump myDump chromatin custom 10000 id_and_type.dat id type 
+#####################################################
+# # Define a compute to compute pairwise distances
+compute myPairDistance chromatin pair/local dist
+
+# Define your custom compute to compute local properties
+compute myComputePropertyLocal chromatin property/local patom1 patom2 ptype1 ptype2
+
+# Dump the pairwise distances and local properties to a file
+dump myDumpPairwise chromatin local 10000 pairwise.dump c_myPairDistance c_myComputePropertyLocal[1] c_myComputePropertyLocal[2] c_myComputePropertyLocal[3] c_myComputePropertyLocal[4]
+
+# # Compute the density of Swi6M
+# compute myChunks3d_${a} Swi6M chunk/atom bin/3d x lower 10 y lower 10 z lower 10 units box
+# compute myChunks2d_${a} Swi6M chunk/atom bin/2d x lower 10 y lower 10 units box
+
+# fix myDensityCount2d_${a} Swi6M ave/chunk 10000 1 10000 myChunks2d_${a} density/number file density2d_${simname}_${J}_${N}.profile ave running
+# fix myDensityCount3d_${a} Swi6M ave/chunk 10000 1 10000 myChunks3d_${a} density/number file density3d_${simname}_${J}_${N}.profile ave running
+
+# # Compute the MSD of Swi6M chunks
+# compute myChunksMSD_${a} Swi6M chunk/atom bin/3d x lower 2 y lower 2 z lower 2 units box ids once
+# compute myMSDChunk_${a} Swi6M msd/chunk myChunksMSD_${a}
+# fix myFixMSD Swi6M ave/time 10000 1 10000 c_myMSDChunk_${a}[*] file msd_${simname}_${a}.out mode vector
+
+# # Compute the MSD of Swi6M atoms
+# compute myMSD_${a} Swi6M msd
+# fix myFixMSD2 Swi6M ave/time 10000 1 10000 c_myMSD_${a}[1] c_myMSD_${a}[2] c_myMSD_${a}[3] c_myMSD_${a}[4] file msd_swi6_${simname}_${J}_${N}.txt
+
+# # Compute clusters of atoms with a distance threshold of 3.0 units
+# compute myClusters_${a} allSwi6 cluster/atom 3.0
+# dump myDumpCluster_${a} allSwi6 custom 10000 clusters_${simname}_${J}_${N}.dat c_myClusters_${a}
+
+#####################################################
+
+# Nested loop to change one random nucleosome's type every 10000 steps
+variable total_steps equal 20000000
+variable steps_per_iteration equal ${noise}
+variable iterations equal ${total_steps}/${steps_per_iteration}
+
+#####################################################
+
+label loopnucleosome
+    # Generate a random atom index
+    variable random_index equal floor(random(1,501,27939))
+
+    # Generate a random type (assuming types 1 to 3)
+    variable random_type equal floor(random(1,4,489))
+
+    # Change the atom's type to the random type
+    set atom ${random_index} type ${random_type}
+
+    # Run for steps
+    run ${steps_per_iteration} every 200 "set group allSwi6_dynamic type Swi6" "set group nucleations type M" 
+
+    # Decrease the iterations counter using a separate variable for the decrement
+    variable new_iterations equal ${iterations}-1
+    variable iterations equal ${new_iterations}
+
+    # If iterations counter is not zero, continue the loop
+    if "${iterations} > 0" then "jump SELF loopnucleosome"
+
+label loopnucleosome_end
+
+# # Replication loop: change half of the atoms to U's after the nucleosome loop
+# label loopreplication
+
+# # Define the total number of atoms in your system
+# variable total_atoms equal 80
+
+# # Calculate half of the atoms
+# variable half_atoms equal ${total_atoms}/2
+
+# # Loop through half of the atoms and randomly change their types to U
+# label loopa
+#     # Generate a random atom index
+#     variable random_index equal floor(random(1,${total_atoms},27939))
+
+#     # Change the atom's type to U
+#     set atom ${random_index} type 2
+
+#     # Decrease the counter for half_atoms
+#     variable half_atoms equal ${half_atoms}-1
+
+#     # If half_atoms counter is not zero, continue the loop
+#     if "${half_atoms} > 0" then "jump SELF loopa"
+
+# label loopaend
+
+# jump SELF loopreplication

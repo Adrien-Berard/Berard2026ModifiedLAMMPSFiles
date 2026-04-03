@@ -1,0 +1,5 @@
+# read.lammps
+units       real
+atom_style  bond
+read_restart restart.equil
+print       "Number of atoms: ${natoms}"
