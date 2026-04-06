@@ -62,9 +62,9 @@ group BoundaryElements union IRL IRR
 
 variable size_nucleation equal 25
 variable size_change equal 106
-group nucleation1 id ${v_size_change}+1:${v_size_change}+${v_size_nucleation}
-group nucleation2 id 2*${v_size_change}+${v_size_nucleation}+1:2*${v_size_change}+${v_size_nucleation}+${v_size_nucleation}
-group nucleation3 id 3*${v_size_change}+${v_size_nucleation}+1:3*${v_size_change}+${v_size_nucleation}+${v_size_nucleation}
+group nucleation1 id ${size_change}+1:${size_change}+${size_nucleation}
+group nucleation2 id 2*${size_change}+${size_nucleation}+1:2*${size_change}+${size_nucleation}+${size_nucleation}
+group nucleation3 id 3*${size_change}+${size_nucleation}+1:3*${size_change}+${size_nucleation}+${size_nucleation}
 group nucleations union nucleation1 nucleation2 nucleation3
 
 # Create dynamic groups based on these static groups

@@ -1,0 +1,142 @@
+# ============================================================
+# PRX Life Matplotlib Style  —  improved edition
+# Targets Physical Review journals (single-column: 3.35 in)
+# Colorblind-safe Okabe-Ito palette
+# Font: Arial throughout
+# ============================================================
+
+
+############################
+# Figure sizing
+############################
+figure.figsize  : 3.35, 2.4
+figure.dpi      : 300
+savefig.dpi     : 600
+
+
+############################
+# Fonts  —  Arial everywhere
+############################
+font.family      : sans-serif
+font.sans-serif  : Arial, Helvetica, DejaVu Sans
+
+font.size        : 8
+axes.titlesize   : 8
+axes.labelsize   : 8
+xtick.labelsize  : 7
+ytick.labelsize  : 7
+legend.fontsize  : 7
+
+mathtext.fontset : dejavusans
+
+pdf.fonttype : 42
+ps.fonttype  : 42
+svg.fonttype : none
+
+
+############################
+# Color cycle  —  Okabe-Ito colorblind-safe
+# mplstyle syntax: cycler('color', [hex_WITHOUT_hash, ...])
+#  1. 0072B2  blue
+#  2. F0E442  yellow
+#  3. D55E00  vermillion / red-orange
+#  4. 009E73  green  (matches bistable region color)
+#  5. CC79A7  pink
+#  6. E69F00  orange
+#  7. 56B4E9  sky blue
+#  8. 000000  black
+#  9. 999999  grey
+############################
+axes.prop_cycle : cycler('color', ['0072B2', 'F0E442','D55E00', '009E73', 'CC79A7', 'E69F00', '56B4E9', '000000', '999999'])
+
+
+############################
+# Lines and markers
+############################
+lines.linewidth      : 1.2
+lines.markersize     : 4
+lines.markeredgewidth: 0.8
+lines.markeredgecolor: auto
+
+
+############################
+# Axes  —  open/clean two-spine frame
+############################
+axes.linewidth       : 0.8
+axes.spines.top      : False
+axes.spines.right    : False
+axes.facecolor       : white
+figure.facecolor     : white
+
+
+############################
+# Grid
+# grid.color: use named CSS color or 0.X grey float — NOT raw hex
+############################
+axes.grid        : True
+axes.axisbelow   : True
+grid.linewidth   : 0.4
+grid.alpha       : 0.35
+grid.linestyle   : -
+grid.color       : silver
+
+
+############################
+# Ticks
+############################
+xtick.direction    : in
+ytick.direction    : in
+
+xtick.top          : False
+ytick.right        : False
+
+xtick.major.size   : 3.5
+ytick.major.size   : 3.5
+xtick.minor.size   : 2.0
+ytick.minor.size   : 2.0
+
+xtick.major.width  : 0.8
+ytick.major.width  : 0.8
+xtick.minor.width  : 0.6
+ytick.minor.width  : 0.6
+
+xtick.minor.visible: True
+ytick.minor.visible: True
+
+
+############################
+# Legend
+############################
+legend.frameon       : False
+legend.handlelength  : 1.5
+legend.labelspacing  : 0.3
+legend.handletextpad : 0.4
+
+
+############################
+# Error bars
+############################
+errorbar.capsize: 2
+
+
+############################
+# Images / colormaps
+# Default: viridis. For phase diagrams, see prxlife_cmaps.py
+############################
+image.cmap           : viridis
+image.interpolation  : antialiased
+
+
+############################
+# Axis number formatting
+############################
+axes.formatter.useoffset : False
+axes.formatter.limits    : -3, 3
+axes.unicode_minus       : True
+
+
+############################
+# Saving
+############################
+savefig.bbox        : tight
+savefig.pad_inches  : 0.02
