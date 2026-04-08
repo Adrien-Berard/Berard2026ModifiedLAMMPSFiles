@@ -340,7 +340,7 @@ def extract_r2(r2_path: Path, out_dir: Path):
 # ─────────────────────────────────────────────────────────────────────────────
 # DUMP.LAMMPSTRJ
 # dump mydmp all atom 10000 dump.lammpstrj
-# Atom style: id type x y z (or xu yu zu for unwrapped)
+# Atom style: id type xs ys zs (or xu yu zu for unwrapped)
 # ─────────────────────────────────────────────────────────────────────────────
 
 def iter_dump_frames(dump_path: Path):
@@ -363,7 +363,7 @@ def iter_dump_frames(dump_path: Path):
             f.readline()  # ITEM: BOX BOUNDS ...
             box = [list(map(float, f.readline().split())) for _ in range(3)]
 
-            atoms_line = f.readline().strip()  # ITEM: ATOMS id type x y z ...
+            atoms_line = f.readline().strip()  # ITEM: ATOMS id type xs ys zs ...
             col_names = atoms_line.replace("ITEM: ATOMS", "").split()
 
             atoms = np.array([
@@ -401,9 +401,9 @@ def extract_dump(dump_path: Path, out_dir: Path,
     try:
         id_idx   = col_names.index("id")
         type_idx = col_names.index("type")
-        x_idx = col_names.index("xu") if "xu" in col_names else col_names.index("x")
-        y_idx = col_names.index("yu") if "yu" in col_names else col_names.index("y")
-        z_idx = col_names.index("zu") if "zu" in col_names else col_names.index("z")
+        x_idx = col_names.index("xu") if "xu" in col_names else col_names.index("xs")
+        y_idx = col_names.index("yu") if "yu" in col_names else col_names.index("ys")
+        z_idx = col_names.index("zu") if "zu" in col_names else col_names.index("zs")
     except ValueError as e:
         log.error(f"  [dump] Missing column: {e}. Found: {col_names}")
         return
