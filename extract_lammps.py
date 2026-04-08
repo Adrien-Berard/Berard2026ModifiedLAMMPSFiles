@@ -34,7 +34,7 @@ Usage:
   # Contact matrix: distance cutoff in LJ units (default 1.5 = bead diameter)
   python extract_lammps.py --root /path/to/sim/ --contact-cutoff 1.5
 
-  # Subsampled trajectory: keep every Nth frame (default 10)
+  # Subsampled trajectory: keep every Nth frame (default 100)
   python extract_lammps.py --root /path/to/sim/ --dump-stride 100
 
   # Write all outputs to a separate directory (mirrors folder structure)
@@ -374,8 +374,8 @@ def iter_dump_frames(dump_path: Path):
 
 
 def extract_dump(dump_path: Path, out_dir: Path,
-                 contact_cutoff: float = 1.5,
-                 dump_stride: int = 10,
+                 contact_cutoff: float = 3.0,
+                 dump_stride: int = 100,
                  n_contact_frames: int = 52):
     """
     From dump.lammpstrj produce:
@@ -527,12 +527,12 @@ def parse_args():
     p.add_argument("--only", nargs="+",
                    choices=["types", "reactions", "log", "r2", "dump"],
                    help="Only process these file types")
-    p.add_argument("--dump-stride", type=int, default=10,
-                   help="Keep every Nth dump frame in dump_sub (default: 10)")
+    p.add_argument("--dump-stride", type=int, default=100,
+                   help="Keep every Nth dump frame in dump_sub (default: 100)")
     p.add_argument("--contact-frames", type=int, default=52,
                    help="Number of evenly spaced frames for contact matrix (default: 52)")
-    p.add_argument("--contact-cutoff", type=float, default=1.5,
-                   help="Contact distance cutoff in LJ units (default: 1.5)")
+    p.add_argument("--contact-cutoff", type=float, default=3.0,
+                   help="Contact distance cutoff in LJ units (default: 3.0)")
     p.add_argument("--verbose", action="store_true",
                    help="Show full tracebacks on errors")
     return p.parse_args()
@@ -543,4 +543,17 @@ def main():
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
     if not args.root.exists():
-  
+        log.error(f"Path does not exist: {args.root}")
+        sys.exit(1)
+    folders = find_simulation_folders(args.root, args.recursive)
+    if not folders:
+        log.error(f"No simulation folders found under {args.root}")
+        sys.exit(1)
+    log.info(f"Found {len(folders)} simulation folder(s).")
+    for folder in folders:
+        process_folder(folder, args.root, args)
+    log.info(f"\n{'─'*60}\nDone.")
+ 
+ 
+if __name__ == "__main__":
+    main()
