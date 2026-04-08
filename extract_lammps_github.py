@@ -19,6 +19,11 @@ Supported input files (auto-detected per folder):
   dump.lammpstrj    → contact_matrix.npz  (mean, std, timeseries)
                     → dump_sub.lammpstrj   (subsampled trajectory)
 
+  *.py              → python scripts
+
+  *.ipynb           → python notebooks
+
+
 Usage:
 ──────
   # Single simulation folder
@@ -57,6 +62,12 @@ STATIC_FILES = [
     "MU_pre-reaction.template",
     "Swi6toSwi6M_post-reaction.template",
     "Swi6toSwi6M_pre-reaction.template",
+    "Swi6toEpe1C_pre-reaction.template",
+    "Swi6toEpe1C_post-reaction.template",
+    "MtoUEpe1C_pre-reaction.template",
+    "MtoUEpe1C_post-reaction.template",
+    "Epe1CtoSwi6_pre-reaction.template",
+    "Epe1CtoSwi6_post-reaction.template",
     "InitialFile.txt",
     "input.lammps",
     "simple.map",
