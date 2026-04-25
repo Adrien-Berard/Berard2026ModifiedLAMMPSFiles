@@ -1,0 +1,237 @@
+#package gpu 1 split 0.75
+# VARIABLES
+variable fname index InitialFile.txt
+variable simname index InitialFile
+variable J index 1.0
+
+#####################################################
+variable p1 equal 1e-4 # Vary from 1e-4 to 2e-5 with 10 values
+variable noise equal 500
+#####################################################
+variable p2 equal 0.00025
+variable a index 1
+variable N index 1000
+
+variable nevery_swi6 equal 10
+
+variable monomers_2 equal 80
+variable monomers_deltaK  equal 80
+variable last_idx_deltaK  equal ${monomers_deltaK}
+variable first_idx_2  equal ${last_idx_deltaK}+1
+variable last_idx_2  equal ${last_idx_deltaK}+${monomers_2}
+variable sigma  equal 1
+variable D  equal 1
+variable dt  equal 0.001
+
+
+# Initialization
+units		lj
+boundary	    p p p
+atom_style	bond
+
+# read_restart	/home/adrien/SPombe_MatRegion_Model/Forced_encounter/number_nucleo_fix80_deltak80/equil_swi6_200/restart.equil
+# read_restart restart.equil
+read_data InitialFile.txt 
+
+
+
+# Dreiding potential information
+neighbor	2.0 bin
+neigh_modify every 1 delay 0 check yes
+
+# Define the bond potential
+# Type - Energy - Equilibrium bond length
+bond_style      harmonic
+bond_coeff	Normal 10 1
+
+
+#####################################################
+# Define morse potentials D - alpha - r0 
+pair_style	morse/smooth/linear 3.0 # Cutoff
+#pair_coeff M M ${J} 2 1.0 # Define M-M pair coeff
+# repulsive interactions for all non defined pairs
+pair_coeff  * * 1e-2 2 1.5 #see potentials graph 
+
+pair_coeff	Swi6M M ${J} 3 1.0
+pair_coeff	Swi6M Swi6M ${J} 3 1.0
+
+#####################################################
+
+# Define static groups based on atom types
+group chromatin type 1 2 3
+group Mtype type 3
+group allSwi6 type 4 5
+group mobiles type 1 2 3 4 5
+group DeltaK id 1:${last_idx_deltaK}
+group polymer2 id ${first_idx_2}:${last_idx_2}
+
+group reactive union DeltaK allSwi6
+
+# Create dynamic groups based on these static groups
+group chromatin_dynamic dynamic chromatin every 1
+group Mtype_dynamic dynamic Mtype every 1
+
+# Step 1: Define variable for atom types
+variable AtomTypes4 atom 4
+variable AtomTypes5 atom 5
+variable AtomTypes4and5 atom "type == 4 || type == 5"
+
+# Step 2: Create dynamic groups based on atom types and update every 1 timesteps
+group Swi6_dynamic dynamic all var AtomTypes4 every 1
+group Swi6M_dynamic dynamic all var AtomTypes5 every 1
+group allSwi6_dynamic dynamic all var AtomTypes4and5 every 1
+#####################################################
+
+#####################################################
+# set timestep of integrator
+
+timestep 0.001
+
+#####################################################
+# Compute properties
+compute R2_polymer2 polymer2 gyration 
+compute R2_deltaK DeltaK gyration  
+
+# Equilibrate the polymers far apart
+fix tether_polymer2 polymer2 spring tether 50.0 12.5 12.5 12.5 0.0
+fix tether_deltaK   DeltaK   spring tether 50.0 37.5 37.5 37.5 0.0
+
+
+#####################################################
+# Equilibration 
+
+velocity 	all create 1.0 12315
+fix		1 all nve/limit 1
+fix 2 all langevin 1.0 1.0 1.0 1215
+thermo_style	custom step temp
+thermo          100000
+
+run		10000000
+
+write_restart restart.equil
+# Not necessary anymore to have a restart file as it is already loaded
+
+#####################################################
+unfix tether_polymer2
+unfix tether_deltaK
+
+dump mydmp all atom 10000 dump.lammpstrj
+
+timestep 0.001
+#####################################################
+molecule ASwi6M_post ASwi6M_post-reaction.template
+molecule ASwi6M_pre ASwi6M_pre-reaction.template
+molecule AU_post AU_post-reaction.template
+molecule AU_pre AU_pre-reaction.template
+molecule MA_post MA_post-reaction.template
+molecule MA_pre MA_pre-reaction.template
+molecule MU_post MU_post-reaction.template
+molecule MU_pre MU_pre-reaction.template
+
+molecule Swi6toSwi6M_pre Swi6toSwi6M_pre-reaction.template
+molecule Swi6toSwi6M_post Swi6toSwi6M_post-reaction.template
+
+# molecule Swi6MdecayPre Swi6MDecay-pre.template
+# molecule Swi6MdecayPost Swi6MDecay-post.template
+
+
+#####################################################
+# Compute the count of atom types
+compute myTypes all count/type atom
+
+# Define variables to store the count of atom types
+variable typeA equal c_myTypes[1]
+variable typeU equal c_myTypes[2]
+variable typeM equal c_myTypes[3]
+
+
+
+# Ensure that fixes are applied after all variables are correctly set up
+fix reacter all bond/react &
+    react reacAtoU all 1 0 2.0 ASwi6M_pre ASwi6M_post simple.map molecule inter prob v_p2 156 &
+    react reacMtoU DeltaK 1 0 2.0 AU_pre AU_post simple.map molecule intra prob v_p1 5645 &
+    react reacUtoA DeltaK 1 0 2.0 MA_pre MA_post simple.map molecule intra prob v_p2 564 &
+    react reacUtoM DeltaK 1 0 2.0 MU_pre MU_post simple.map molecule intra prob v_p2 4856 &
+    react reacSwi6toSwi6M all v_nevery_swi6 0 2.0 Swi6toSwi6M_pre Swi6toSwi6M_post simple.map molecule inter prob 1 1858 &
+
+
+#####################################################
+
+thermo_style custom step temp f_reacter[1] f_reacter[2] f_reacter[3] f_reacter[4] f_reacter[5]
+thermo_modify line yaml
+thermo 10000
+#####################################################
+
+restart 10000000 restart.*  
+
+
+# Condensation of polymer 2 has been allowed and now delta k can diffuse apart if attraction not strong enough to replicate the case (meeting through forced diffusion)
+# let diffuse if doesnt stick (otherwise simulation blows up)
+
+# #####################################################
+# fix 2 all langevin 1 1 1.0 12315
+# fix		1 all nve/limit 1
+
+####################################################
+# WALL CONDITIONS
+
+# fix mywall M_Atoms wall/lj93 xlo EDGE 10 10 100 xhi EDGE 10 10 100
+
+####################################################
+
+fix myfixR2_2 polymer2 ave/time 10 100 1000 c_R2_polymer2[0] file r2_fix.dat
+fix myfixR2_deltaK DeltaK ave/time 10 100 1000 c_R2_deltaK[0] file r2_deltaK.dat
+
+####################################################
+variable typeSwi6 equal c_myTypes[4]
+variable typeSwi6M equal c_myTypes[5]
+
+# Output the count of atom types to a file every 1000 steps
+fix myfixTypes all print 1000 "${typeA},${typeU},${typeM},${typeSwi6},${typeSwi6M}" file types1.dat screen no
+
+# Dump types for DeltaK group
+dump deltaK_dump DeltaK custom 10000 deltaK_types.dat id type
+
+####################################################
+# Count reactions
+
+# variable reactionsIDs1 equal f_reacter[1]
+# variable reactionsIDs2 equal f_reacter[2]
+# variable reactionsIDs3 equal f_reacter[3]
+# variable reactionsIDs4 equal f_reacter[4]
+
+# fix myFixReactions all print 10000 "${reactionsIDs1},${reactionsIDs2},${reactionsIDs3},${reactionsIDs4}," file reactions.dat screen no
+
+####################################################
+dump myDump chromatin custom 10000 id_and_type.dat id type 
+#####################################################
+
+
+# Nested loop to change one random nucleosome's type every 10000 steps
+variable total_steps equal 2000000
+variable steps_per_iteration equal ${noise}
+variable iterations equal ${total_steps}/${steps_per_iteration}
+
+#####################################################
+
+label loopnucleosome
+    # Generate a random atom index
+    variable random_index equal floor(random(1,${monomers_deltaK},27939))
+
+    # Generate a random type (assuming types 1 to 3)
+    variable random_type equal floor(random(1,4,489))
+
+    # Change the atom's type to the random type
+    set atom ${random_index} type ${random_type}
+
+    # Run for 10000 steps
+    run ${steps_per_iteration} every 200 "set group allSwi6_dynamic type 4"
+
+    # Decrease the iterations counter using a separate variable for the decrement
+    variable new_iterations equal ${iterations}-1
+    variable iterations equal ${new_iterations}
+
+    # If iterations counter is not zero, continue the loop
+    if "${iterations} > 0" then "jump SELF loopnucleosome"
+
+label loopnucleosome_end
